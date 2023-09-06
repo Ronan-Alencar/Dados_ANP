@@ -1,15 +1,18 @@
 # Dados_ANP
 
+ETL project for National Petroleum Agency of Brazil data using Azure and Databricks.
 Projeto de ETL dos dados da Agência Nacional do Petróleo utilizando Azure e Databricks.
 
 # Data Lake
 
+Preparation of layers in the Data Lake.
 Organização das camadas no Data Lake.
 
 ![imagem_2023-06-29_120034417](https://github.com/Ronan-Alencar/Dados_ANP/assets/133599706/25a7d95c-1935-496b-9834-3c9b0e5e0ec9)
 
 # Data Factory
 
+Creation of the data ingestion pipeline in Data Factory, sending data from an Http address to the raw layer of the Data Lake, using parameterization for better organization.
 Criação da pipeline de ingestão dos dados no Data Factory, enviando os dados de um endereço Http para a camada raw do Data Lake, utilizei a parametrização para uma melhor organização.
 
 ![imagem_2023-06-29_115654994](https://github.com/Ronan-Alencar/Dados_ANP/assets/133599706/d7b65b4c-9679-43ce-ab17-29d0cedead60)
@@ -18,9 +21,10 @@ Criação da pipeline de ingestão dos dados no Data Factory, enviando os dados 
 
 # Databricks
 
+After acquiring the data for the Data Lake, I used Databricks for data processing.
 Após a ingestão dos dados para o Data Lake fiz o uso do Databricks para o processamento dos dados.
 
-# Gerando Mount point
+#  Generating Mounting point / Gerando Mount point
 
 ```python
 dbutils.fs.mount  (
@@ -29,14 +33,14 @@ dbutils.fs.mount  (
     extra_configs = {"fs.azure.account.key.datalakeron1.blob.core.windows.net":"PsXb5605fkCE7/CI4JDDgNsgCIvWC63Ksel1hgGiCanYwaK9CY2Sqp9GDrd+swjT06Ux/9eRlS8M+ASteXC0pQ=="}
 )
 ```
-# Listando os Diretórios
+# Listing the Directories / Listando os Diretórios
 ```python
 dbutils.fs.ls ("/mnt/engdados")
 
 display(dbutils.fs.ls ("/mnt/engdados/raw"))
 ```
 
-# Leitura do CSV
+# Reading the CSV / Leitura do CSV
 ```python
 df = spark.read.format("csv")\
                .option("sep", ";")\
@@ -45,7 +49,7 @@ df = spark.read.format("csv")\
                .load("/mnt/engdados/raw/1_sem_2020.csv")
 ```
 
-# Renomenado as Colunas
+# Renaming the Columns / Renomeando as Colunas
 ```python
 df_rename = df.withColumnRenamed ('Regiao - Sigla','REGIAO')\
                    .withColumnRenamed ('Estado - Sigla','ESTADO')\
@@ -66,7 +70,7 @@ df_rename = df.withColumnRenamed ('Regiao - Sigla','REGIAO')\
 df_rename.createOrReplaceTempView("TABELA_COMPLETA")
 ```
 
-# Troca dos Data Types
+# Update of Data Types / Troca dos Data Types
 ```python
 df_data_types = spark.sql(""" SELECT REGIAO,
                                      ESTADO,
@@ -90,7 +94,7 @@ display(df_data_types)
 df_data_types.createOrReplaceTempView("TABELA_CARGA")
 ```
 
-# Criando uma Consulta
+# Creating a Query / Criando uma Consulta
 ```python
 df_all = spark.sql("SELECT * FROM TABELA_CARGA WHERE VL_VENDA IS NOT NULL AND VL_COMPRA IS NOT NULL")
 ```
@@ -105,12 +109,12 @@ df_all.createOrReplaceTempView("Consulta")
 SELECT REGIAO, ESTADO, REVENDA, PRODUTO, DATA_COLETA, VL_VENDA, VL_COMPRA, UNID_MED, BANDEIRA FROM Consulta
 ```
 
-# Salvando Dataframe para Hive Table
+# Saving Dataframe to Hive Table / Salvando Dataframe para Hive Table
 ```python
 df_all.write.format("parquet").mode("overwrite").saveAsTable("TB_ANP_Parquet")
 ```
 
-# Salvando na camada refined do Data Lake
+# Saving in the refined layer of the Data Lake / Salvando na camada refined do Data Lake
 
 Fiz o uso de uma função para melhor visualização dos arquivos no container
 ```python
